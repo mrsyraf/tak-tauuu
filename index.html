@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>A Message For You</title>
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg: #050505;
+            --accent: #ff7eb9;
+            --purple: #7052ff;
+            --text: #ffffff;
+            --soft-white: rgba(255, 255, 255, 0.8);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            font-family: 'Poppins', sans-serif;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        /* --- BACKGROUND ANIMATION --- */
+        #canvas-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: -1;
+            background: radial-gradient(circle at 50% 50%, #1a1025 0%, #050505 100%);
+        }
+
+        .glow-orb {
+            position: absolute;
+            width: 60vw;
+            height: 60vw;
+            background: radial-gradient(circle, rgba(112, 82, 255, 0.1) 0%, transparent 70%);
+            border-radius: 50%;
+            filter: blur(80px);
+            animation: float-orb 15s infinite alternate ease-in-out;
+        }
+
+        @keyframes float-orb {
+            0% { transform: translate(-10%, -10%); }
+            100% { transform: translate(30%, 20%); }
+        }
+
+        /* --- LOADING / START SCREEN --- */
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+            transition: opacity 1s ease;
+            text-align: center;
+        }
+
+        .start-btn {
+            background: none;
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            padding: 12px 30px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            letter-spacing: 2px;
+            cursor: pointer;
+            margin-top: 20px;
+            transition: 0.3s;
+        }
+
+        .start-btn:hover {
+            background: var(--accent);
+            color: white;
+        }
+
+        /* --- SECTIONS --- */
+        section {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(40px);
+            transition: all 1.2s cubic-bezier(0.22, 1, 0.36, 1);
+        }
+
+        section.visible {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        h1, h2 {
+            font-family: 'Playfair Display', serif;
+            font-weight: 400;
+        }
+
+        .hero-title { font-size: 3rem; margin-bottom: 15px; line-height: 1.2; }
+        .hero-sub { color: var(--soft-white); font-weight: 300; letter-spacing: 1.5px; font-size: 0.9rem; }
+
+        /* --- STORY TEXT --- */
+        .story-text {
+            font-size: 1.3rem;
+            line-height: 1.8;
+            max-width: 600px;
+            color: var(--soft-white);
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+        }
+
+        /* --- LETTER SECTION --- */
+        #typewriter {
+            font-family: 'Playfair Display', serif;
+            font-style: italic;
+            font-size: 1.6rem;
+            min-height: 200px;
+            max-width: 550px;
+            color: var(--accent);
+            line-height: 1.6;
+        }
+
+        /* --- FINAL ASK --- */
+        .btn-container {
+            margin-top: 50px;
+            display: flex;
+            gap: 20px;
+            position: relative;
+            justify-content: center;
+            width: 100%;
+            height: 100px; /* Space for the "No" button to move */
+        }
+
+        .action-btn {
+            padding: 16px 45px;
+            border-radius: 50px;
+            border: none;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s;
+            font-size: 1rem;
+            position: absolute;
+        }
+
+        .btn-yes {
+            background: linear-gradient(45deg, var(--accent), var(--purple));
+            color: white;
+            box-shadow: 0 10px 25px rgba(255, 126, 185, 0.4);
+            z-index: 2;
+            transform: translateX(-70px);
+        }
+
+        .btn-no {
+            background: rgba(255, 255, 255, 0.05);
+            color: var(--soft-white);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            z-index: 1;
+            transform: translateX(70px);
+            white-space: nowrap;
+        }
+
+        /* --- SUCCESS OVERLAY --- */
+        #success-screen {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: radial-gradient(circle, #1a1025 0%, #050505 100%);
+            z-index: 10000;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+            padding: 20px;
+            animation: fadeIn 1s forwards;
+        }
+
+        @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+
+        /* --- FLOATING ELEMENTS --- */
+        .floating-heart {
+            position: absolute;
+            color: var(--accent);
+            pointer-events: none;
+            z-index: 10001;
+            animation: floatUp linear forwards;
+        }
+
+        @keyframes floatUp {
+            0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+            100% { transform: translateY(-100vh) rotate(360deg); opacity: 0; }
+        }
+
+        #music-toggle {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.05);
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            color: white;
+        }
+
+        @media (max-width: 600px) {
+            .hero-title { font-size: 2.2rem; }
+            .story-text { font-size: 1.1rem; }
+            .btn-yes { transform: translateX(-60px); }
+            .btn-no { transform: translateX(60px); }
+        }
+    </style>
+</head>
+<body>
+
+    <div id="canvas-container">
+        <div class="glow-orb"></div>
+    </div>
+
+    <div id="loader">
+        <i data-lucide="heart" fill="#ff7eb9" style="color: #ff7eb9; width: 40px; height: 40px;"></i>
+        <p style="margin-top: 20px; font-weight: 300; letter-spacing: 2px;">PREPARED FOR YOU</p>
+        <button class="start-btn" onclick="startExperience()">OPEN LETTER</button>
+    </div>
+
+    <div id="music-toggle" onclick="toggleMusic()">
+        <i data-lucide="music" id="music-icon"></i>
+    </div>
+    <audio id="bg-music" loop>
+        <source src="music.mp3.mp3" type="audio/mpeg">
+    </audio>
+
+    <div id="main-content" style="visibility: hidden;">
+        <section id="hero">
+            <h1 class="hero-title">Hi <span id="crush-name-display">Beautiful</span>...</h1>
+            <p class="hero-sub">I wanted to show you something.</p>
+        </section>
+
+        <section>
+            <p class="story-text">At first, you were just someone I met...</p>
+        </section>
+
+        <section>
+            <p class="story-text">But slowly, you became the person I look for in every room.</p>
+        </section>
+
+        <section>
+            <p class="story-text">The one whose name makes my phone screen lighting up the best part of my day.</p>
+        </section>
+
+        <section>
+            <h2 style="font-size: 2rem; margin-bottom: 20px;">You make everything feel effortless.</h2>
+            <p class="hero-sub">And I realized I don't want to do life without you.</p>
+        </section>
+
+        <section id="letter-section">
+            <div id="typewriter"></div>
+        </section>
+
+        <section id="final-ask">
+            <h1 class="hero-title">So... will you be my girlfriend?</h1>
+            <div class="btn-container">
+                <button class="action-btn btn-yes" onclick="celebrate()">YES ❤️</button>
+                <button class="action-btn btn-no" id="no-btn">NOT YET 😳</button>
+            </div>
+        </section>
+    </div>
+
+    <div id="success-screen">
+        <i data-lucide="heart" size="64" fill="#ff7eb9" style="color: #ff7eb9; margin-bottom: 30px;"></i>
+        <h1 class="hero-title">You just made me the happiest person alive ❤️</h1>
+        <p class="hero-sub">Our story starts today.</p>
+    </div>
+
+    <script>
+        // --- EDIT THESE ---
+        const HER_NAME = "Sarah"; // Put her name here
+        const confessionText = "I didn’t plan to fall for you this hard... but here we are. I’ve never been more sure about anything than I am about us. I want to be the one who's always by your side.";
+
+        // --- CORE LOGIC ---
+        document.getElementById('crush-name-display').innerText = HER_NAME;
+        lucide.createIcons();
+
+        const music = document.getElementById('bg-music');
+        const musicIcon = document.getElementById('music-icon');
+        let isPlaying = false;
+
+        function startExperience() {
+            document.getElementById('loader').style.opacity = '0';
+            document.getElementById('main-content').style.visibility = 'visible';
+            setTimeout(() => {
+                document.getElementById('loader').style.display = 'none';
+                music.play();
+                isPlaying = true;
+                revealOnScroll();
+            }, 1000);
+        }
+
+        function toggleMusic() {
+            if (isPlaying) {
+                music.pause();
+                musicIcon.setAttribute('data-lucide', 'volume-x');
+            } else {
+                music.play();
+                musicIcon.setAttribute('data-lucide', 'music');
+            }
+            isPlaying = !isPlaying;
+            lucide.createIcons();
+        }
+
+        // Intersection Observer for Animations
+        function revealOnScroll() {
+            const sections = document.querySelectorAll('section');
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('visible');
+                        if (entry.target.id === 'letter-section') startTypewriter();
+                    }
+                });
+            }, { threshold: 0.5 });
+
+            sections.forEach(s => observer.observe(s));
+        }
+
+        // Typewriter Effect
+        let typed = false;
+        function startTypewriter() {
+            if (typed) return;
+            typed = true;
+            const container = document.getElementById('typewriter');
+            let i = 0;
+            function type() {
+                if (i < confessionText.length) {
+                    container.innerHTML += confessionText.charAt(i);
+                    i++;
+                    setTimeout(type, 60);
+                }
+            }
+            type();
+        }
+
+        // Playful No Button Logic
+        const noBtn = document.getElementById('no-btn');
+        const moveNoButton = () => {
+            const x = Math.random() * (window.innerWidth - 150);
+            const y = Math.random() * (window.innerHeight - 100);
+            noBtn.style.position = 'fixed';
+            noBtn.style.left = x + 'px';
+            noBtn.style.top = y + 'px';
+            noBtn.style.transform = 'none'; // Clear the initial transform
+        };
+
+        noBtn.addEventListener('mouseenter', moveNoButton);
+        noBtn.addEventListener('touchstart', (e) => {
+            e.preventDefault(); // Prevent accidental click
+            moveNoButton();
+        });
+
+        // Celebration Logic
+        function celebrate() {
+            document.getElementById('success-screen').style.display = 'flex';
+            setInterval(createHeart, 150);
+        }
+
+        function createHeart() {
+            const heart = document.createElement('div');
+            heart.classList.add('floating-heart');
+            heart.innerHTML = '❤️';
+            heart.style.left = Math.random() * 100 + 'vw';
+            heart.style.top = '100vh';
+            heart.style.fontSize = (Math.random() * 20 + 15) + 'px';
+            heart.style.animationDuration = (Math.random() * 2 + 2) + 's';
+            document.getElementById('success-screen').appendChild(heart);
+            setTimeout(() => heart.remove(), 4000);
+        }
+    </script>
+</body>
+</html>
